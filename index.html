@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>API Gateway</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 600px; margin: auto; }
+        input, textarea, button { width: 100%; padding: 10px; margin: 10px 0; }
+        .response { background: #f4f4f4; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📨 Отправка запроса</h2>
+        <input type="text" id="url" placeholder="URL API (например, https://jsonplaceholder.typicode.com/posts)" value="https://jsonplaceholder.typicode.com/posts">
+        <textarea id="requestData" placeholder="Данные для отправки (JSON)">{"title": "foo", "body": "bar", "userId": 1}</textarea>
+        <select id="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
+        </select>
+        <button onclick="sendRequest()">Отправить</button>
+
+        <h2>📨 Ответ сервера:</h2>
+        <div class="response" id="response"></div>
+    </div>
+
+    <script>
+        async function sendRequest() {
+            const url = document.getElementById('url').value;
+            const method = document.getElementById('method').value;
+            const requestData = document.getElementById('requestData').value;
+            const responseDiv = document.getElementById('response');
+
+            try {
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                // Добавляем тело запроса для методов, кроме GET
+                if (method !== 'GET') {
+                    options.body = requestData;
+                }
+
+                const response = await fetch(url, options);
+                const data = await response.json();
+
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                responseDiv.innerHTML = `Ошибка: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
