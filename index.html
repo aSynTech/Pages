@@ -41,9 +41,87 @@
         <div id="log">Загрузка...</div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<!-- Firebase SDK (должен быть первым) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Firebase конфиг
+  const firebaseConfig = {
+    apiKey: "AIzaSyCnasOZyr-l7AbTBIBXMQRpDQLZH-J78rM",
+    authDomain: "glog-edcee.firebaseapp.com",
+    projectId: "glog-edcee",
+    storageBucket: "glog-edcee.firebasestorage.app",
+    messagingSenderId: "642324298067",
+    appId: "1:642324298067:web:7b95379d43de1d8e6cc9a6",
+    measurementId: "G-7V98MFGVRS"
+  };
+
+  // Инициализация Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  
+  // Теперь весь твой код работы с базой
+  // При загрузке - записываем запрос и показываем лог
+  window.onload = function() {
+      logCurrentRequest();
+      displayReceivedMessage();
+      displayGlobalLog();
+  };
+  
+  // Записываем текущий запрос
+  function logCurrentRequest() {
+      const request = {
+          browserId: localStorage.getItem('browserId') || 'user_' + Math.random().toString(36).substr(2, 9),
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          url: window.location.href,
+          params: window.location.search
+      };
+      
+      db.collection("url_logs").add(request)
+      .catch(error => console.error("Ошибка записи:", error));
+  }
+  
+  // Показываем полученное сообщение из URL
+  function displayReceivedMessage() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const name = urlParams.get('name');
+      const mes = urlParams.get('mes');
+      
+      const receivedDiv = document.getElementById('receivedMessage');
+      if (name && mes) {
+          receivedDiv.innerHTML = `<strong>${escapeHtml(name)}:</strong> ${escapeHtml(mes)}`;
+      }
+  }
+  
+  // Показываем глобальный лог
+  function displayGlobalLog() {
+      db.collection("url_logs")
+          .orderBy("timestamp", "desc")
+          .limit(20)
+          .onSnapshot((snapshot) => {
+              let html = '';
+              snapshot.forEach((doc) => {
+                  const data = doc.data();
+                  const time = data.timestamp ? data.timestamp.toDate().toLocaleString('ru-RU') : 'Только что';
+                  html += `
+                      <div class="log-entry">
+                          <div style="font-size: 0.8em; color: #888;">${time}</div>
+                          <div>${escapeHtml(data.url)}</div>
+                      </div>
+                  `;
+              });
+              document.getElementById('log').innerHTML = html;
+          });
+  }
+  
+  // Защита от XSS
+  function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+  }
+</script>
     
     <script>
         // ТВОЙ КОНФИГ FIREBASE (вставь сюда свои данные!)
@@ -111,27 +189,7 @@
                 });
         }
     </script>
-  <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase  SDK -->
 
-<script>
-  // ВСТАВЬ СЮДА СКОПИРОВАННЫЙ КОНФИГ
-  const firebaseConfig = {
-  apiKey: "AIzaSyCnasOZyr-l7AbTBIBXMQRpDQLZH-J78rM",
-  authDomain: "glog-edcee.firebaseapp.com",
-  projectId: "glog-edcee",
-  storageBucket: "glog-edcee.firebasestorage.app",
-  messagingSenderId: "642324298067",
-  appId: "1:642324298067:web:7b95379d43de1d8e6cc9a6",
-  measurementId: "G-7V98MFGVRS"
-};
-
-  // Инициализация Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  
-  // Теперь можно использовать db для работы с базой
-</script>
 </body>
 </html>
