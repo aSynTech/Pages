@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Приём данных через URL</title>
+    <title>Передача сообщений через URL</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,69 +11,257 @@
             color: #fff;
         }
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
             padding: 20px;
             border: 1px solid #444;
             border-radius: 10px;
         }
-        pre {
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #444;
+        }
+        input {
+            background: #2d2d2d;
+            color: white;
+            flex: 1;
+        }
+        button {
+            background: #4da6ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #3a8fd8;
+        }
+        .message-display {
             background: #2d2d2d;
             padding: 15px;
             border-radius: 5px;
-            overflow-x: auto;
+            margin: 20px 0;
         }
-        a {
-            color: #4da6ff;
-            text-decoration: none;
+        .generated-link {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            word-break: break-all;
         }
-        a:hover {
-            text-decoration: underline;
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>📨 Приём данных через URL-параметры</h2>
-        <p>Перейди по ссылке с параметрами, например:</p>
-        <a href="?name=Брат&message=Привет&age=25" id="exampleLink">Пример ссылки</a>
+        <h1>📨 Передача сообщений через URL</h1>
         
-        <h3>📊 Извлечённые данные из URL:</h3>
-        <pre id="output">{}</pre>
+        <!-- Отображение полученного сообщения -->
+        <div class="message-display">
+            <h3>📥 Полученное сообщение:</h3>
+            <div id="receivedMessage">Нет сообщения</div>
+        </div>
         
-        <h3>🧩 Сгенерировать свою ссылку:</h3>
-        <input type="text" id="keyInput" placeholder="Ключ (например: city)" value="city">
-        <input type="text" id="valueInput" placeholder="Значение (например: Moscow)" value="Moscow">
-        <button onclick="generateLink()">Сгенерировать ссылку</button>
-        <p id="generatedLink"></p>
+        <!-- Форма для создания сообщения -->
+        <h3>📤 Создать сообщение:</h3>
+        <div class="input-group">
+            <input type="text" id="nameInput" placeholder="Твое имя" value="Аноним">
+            <input type="text" id="messageInput" placeholder="Текст сообщения">
+        </div>
+        <button onclick="generateMessageLink()">Создать ссылку с сообщением</button>
+        
+        <!-- Сгенерированная ссылка -->
+        <div class="generated-link">
+            <h3>🔗 Отправь эту ссылку другу:</h3>
+            <div id="linkOutput">Ссылка появится здесь</div>
+        </div>
+        
+        <!-- История отправленных ссылок -->
+        <h3>📋 Твои отправленные сообщения:</h3>
+        <button onclick="clearHistory()">Очистить историю</button>
+        <div id="history"></div>
     </div>
 
     <script>
-        // Парсим URL-параметры и выводим их
-        function parseURLParams() {
+        const HISTORY_KEY = 'messageLinksHistory';
+        
+        // Проверяем, есть ли параметры в URL при загрузке
+        window.onload = function() {
+            displayReceivedMessage();
+            displayHistory();
+        };
+        
+        // Отображаем полученное сообщение
+        function displayReceivedMessage() {
             const urlParams = new URLSearchParams(window.location.search);
-            const params = {};
+            const name = urlParams.get('name');
+            const message = urlParams.get('message');
             
-            for (let [key, value] of urlParams) {
-                params[key] = value;
+            const receivedDiv = document.getElementById('receivedMessage');
+            
+            if (name && message) {
+                receivedDiv.innerHTML = `
+                    <div style="font-size: 1.2em; margin: 10px 0;">
+                        <strong>От:</strong> ${escapeHtml(name)}<br>
+                        <strong>Сообщение:</strong> ${escapeHtml(message)}
+                    </div>
+                `;
+            } else {
+                receivedDiv.innerHTML = '<div style="color: #888;">Нет сообщения в URL</div>';
+            }
+        }
+        
+        // Генерируем ссылку с сообщением
+        function generateMessageLink() {
+            const name = document.getElementById('nameInput').value.trim();
+            const message = document.getElementById('messageInput').value.trim();
+            
+            if (!name || !message) {
+                alert('Заполни имя и сообщение!');
+                return;
             }
             
-            document.getElementById('output').textContent = JSON.stringify(params, null, 2);
-        }
-
-        // Генерация ссылки с параметрами
-        function generateLink() {
-            const key = document.getElementById('keyInput').value;
-            const value = document.getElementById('valueInput').value;
-            const currentURL = window.location.href.split('?')[0]; // Берём URL без параметров
-            const newURL = `${currentURL}?${key}=${encodeURIComponent(value)}`;
+            // Создаем URL с параметрами
+            const baseUrl = window.location.origin + window.location.pathname;
+            const encodedName = encodeURIComponent(name);
+            const encodedMessage = encodeURIComponent(message);
+            const fullUrl = `${baseUrl}?name=${encodedName}&message=${encodedMessage}`;
             
-            document.getElementById('generatedLink').innerHTML = 
-                `<a href="${newURL}">${newURL}</a>`;
+            // Отображаем ссылку
+            document.getElementById('linkOutput').innerHTML = `
+                <a href="${fullUrl}" target="_blank" style="color: #4da6ff; word-break: break-all;">
+                    ${fullUrl}
+                </a>
+                <br><br>
+                <button onclick="copyLink('${fullUrl}')" style="background: #555;">Копировать ссылку</button>
+            `;
+            
+            // Сохраняем в историю
+            saveToHistory(name, message, fullUrl);
+            displayHistory();
         }
+        
+        // Сохраняем в историю
+        function saveToHistory(name, message, url) {
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            
+            history.unshift({
+                timestamp: new Date().toISOString(),
+                name: name,
+                message: message,
+                url: url
+            });
+            
+            // Ограничиваем 20 записями
+            if (history.length > 20) {
+                history = history.slice(0, 20);
+            }
+            
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        }
+        
+        // Отображаем историю
+        function displayHistory() {
+            const historyContainer = document.getElementById('history');
+            const history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            
+            if (history.length === 0) {
+                historyContainer.innerHTML = '<p style="color: #888;">История пуста</p>';
+                return;
+    <script>
+    const HISTORY_KEY = 'messageHistory';
+    
+    // При загрузке страницы
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name');
+        const message = urlParams.get('mes');
+        
+        // Если есть параметры - сохраняем в историю
+        if (name && message) {
+            saveToHistory(name, message);
+            displayReceivedMessage(name, message);
+        } else {
+            document.getElementById('receivedMessage').innerHTML = '<div style="color: #888;">Нет сообщения в URL</div>';
+        }
+        
+        displayHistory();
+    };
+    
+    // Отображаем полученное сообщение
+    function displayReceivedMessage(name, message) {
+        document.getElementById('receivedMessage').innerHTML = `
+            <div style="font-size: 1.2em; margin: 10px 0;">
+                <strong>От:</strong> ${escapeHtml(name)}<br>
+                <strong>Сообщение:</strong> ${escapeHtml(message)}
+            </div>
+        `;
+    }
+    
+    // Сохраняем в историю
+    function saveToHistory(name, message) {
+        let history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+        
+        // Проверяем, нет ли дубликата (по сообщению и времени)
+        const isDuplicate = history.some(item => 
+            item.name === name && item.message === message && 
+            (new Date() - new Date(item.timestamp)) < 5000 // 5 секунд
+        );
+        
+        if (!isDuplicate) {
+            history.unshift({
+                timestamp: new Date().toISOString(),
+                name: name,
+                message: message
+            });
+            
+            // Ограничиваем 30 записями
+            if (history.length > 30) {
+                history = history.slice(0, 30);
+            }
+            
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        }
+    }
+    
+    // Отображаем историю
+    function displayHistory() {
+        const historyContainer = document.getElementById('history');
+        const history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+        
+        if (history.length === 0) {
+            historyContainer.innerHTML = '<p style="color: #888;">История пуста</p>';
+            return;
+        }
+        
+        let html = '';
+        history.forEach((item) => {
+            const date = new Date(item.timestamp);
+            html += `
+                <div style="background: #2d2d2d; padding: 10px; margin: 10px 0; border-radius: 5px; border-left: 3px solid #4da6ff;">
+                    <div style="font-size: 0.8em; color: #888;">${date.toLocaleString('ru-RU')}</div>
+                    <div><strong>${escapeHtml(item.name)}:</strong> ${escapeHtml(item.message)}</div>
+                </div>
+            `;
+        });
+        
+        historyContainer.innerHTML = html;
+    }
+    
+    // Защита от XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
 
-        // Запускаем парсинг при загрузке страницы
-        window.onload = parseURLParams;
-    </script>
+                
 </body>
 </html>
