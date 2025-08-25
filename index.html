@@ -1,17 +1,131 @@
-<!-- Firebase SDK -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Глобальный лог URL-запросов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .log-entry {
+            background: #2d2d2d;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 3px solid #4da6ff;
+        }
+        button {
+            background: #4da6ff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Глобальный лог запросов</h1>
+        
+        <h3>📥 Полученное сообщение:</h3>
+        <div id="receivedMessage">Нет сообщения</div>
+        
+        <h3>📋 Глобальный журнал:</h3>
+        <div id="log">Загрузка...</div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // ТВОЙ КОНФИГ FIREBASE (вставь сюда свои данные!)
+        const firebaseConfig = {
+            // Вставь конфиг с Firebase Console
+        };
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Уникальный ID для браузера
+        let browserId = localStorage.getItem('browserId') || 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('browserId', browserId);
+
+        // При загрузке - записываем запрос и показываем лог
+        window.onload = function() {
+            logCurrentRequest();
+            displayReceivedMessage();
+            displayGlobalLog();
+        };
+        
+        // Записываем текущий запрос
+        function logCurrentRequest() {
+            const request = {
+                browserId: browserId,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                url: window.location.href,
+                params: window.location.search
+            };
+            
+            db.collection("url_logs").add(request);
+        }
+        
+        // Показываем полученное сообщение из URL
+        function displayReceivedMessage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const name = urlParams.get('name');
+            const mes = urlParams.get('mes');
+            
+            const receivedDiv = document.getElementById('receivedMessage');
+            if (name && mes) {
+                receivedDiv.innerHTML = `<strong>${name}:</strong> ${mes}`;
+            }
+        }
+        
+        // Показываем глобальный лог
+        function displayGlobalLog() {
+            db.collection("url_logs")
+                .orderBy("timestamp", "desc")
+                .limit(20)
+                .onSnapshot((snapshot) => {
+                    let html = '';
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const time = data.timestamp ? data.timestamp.toDate().toLocaleString('ru-RU') : 'Только что';
+                        html += `
+                            <div class="log-entry">
+                                <div style="font-size: 0.8em; color: #888;">${time}</div>
+                                <div>${data.url}</div>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('log').innerHTML = html;
+                });
+        }
+    </script>
+  <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 <script>
   // ВСТАВЬ СЮДА СКОПИРОВАННЫЙ КОНФИГ
   const firebaseConfig = {
-    apiKey: "ТВОЙ_API_KEY",
-    authDomain: "ТВОЙ_ПРОЕКТ.firebaseapp.com",
-    projectId: "ТВОЙ_PROJECT_ID",
-    storageBucket: "ТВОЙ_ПРОЕКТ.appspot.com",
-    messagingSenderId: "ТВОЙ_SENDER_ID",
-    appId: "ТВОЙ_APP_ID"
-  };
+  apiKey: "AIzaSyCnasOZyr-l7AbTBIBXMQRpDQLZH-J78rM",
+  authDomain: "glog-edcee.firebaseapp.com",
+  projectId: "glog-edcee",
+  storageBucket: "glog-edcee.firebasestorage.app",
+  messagingSenderId: "642324298067",
+  appId: "1:642324298067:web:7b95379d43de1d8e6cc9a6",
+  measurementId: "G-7V98MFGVRS"
+};
 
   // Инициализация Firebase
   firebase.initializeApp(firebaseConfig);
@@ -19,3 +133,5 @@
   
   // Теперь можно использовать db для работы с базой
 </script>
+</body>
+</html>
