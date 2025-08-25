@@ -1,81 +1,21 @@
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
+<script>
+  // ВСТАВЬ СЮДА СКОПИРОВАННЫЙ КОНФИГ
+  const firebaseConfig = {
+    apiKey: "ТВОЙ_API_KEY",
+    authDomain: "ТВОЙ_ПРОЕКТ.firebaseapp.com",
+    projectId: "ТВОЙ_PROJECT_ID",
+    storageBucket: "ТВОЙ_ПРОЕКТ.appspot.com",
+    messagingSenderId: "ТВОЙ_SENDER_ID",
+    appId: "ТВОЙ_APP_ID"
+  };
 
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Приём данных через URL</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background: #1e1e1e;
-            color: #fff;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #444;
-            border-radius: 10px;
-        }
-        pre {
-            background: #2d2d2d;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-        a {
-            color: #4da6ff;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>📨 Приём данных через URL-параметры</h2>
-        <p>Перейди по ссылке с параметрами, например:</p>
-        <a href="?name=Брат&message=Привет&age=25" id="exampleLink">Пример ссылки</a>
-        
-        <h3>📊 Извлечённые данные из URL:</h3>
-        <pre id="output">{}</pre>
-        
-        <h3>🧩 Сгенерировать свою ссылку:</h3>
-        <input type="text" id="keyInput" placeholder="Ключ (например: city)" value="city">
-        <input type="text" id="valueInput" placeholder="Значение (например: Moscow)" value="Moscow">
-        <button onclick="generateLink()">Сгенерировать ссылку</button>
-        <p id="generatedLink"></p>
-    </div>
-
-    <script>
-        // Парсим URL-параметры и выводим их
-        function parseURLParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const params = {};
-            
-            for (let [key, value] of urlParams) {
-                params[key] = value;
-            }
-            
-            document.getElementById('output').textContent = JSON.stringify(params, null, 2);
-        }
-
-        // Генерация ссылки с параметрами
-        function generateLink() {
-            const key = document.getElementById('keyInput').value;
-            const value = document.getElementById('valueInput').value;
-            const currentURL = window.location.href.split('?')[0]; // Берём URL без параметров
-            const newURL = `${currentURL}?${key}=${encodeURIComponent(value)}`;
-            
-            document.getElementById('generatedLink').innerHTML = 
-                `<a href="${newURL}">${newURL}</a>`;
-        }
-
-        // Запускаем парсинг при загрузке страницы
-        window.onload = parseURLParams;
-    </script>
-</body>
-</html>
+  // Инициализация Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  
+  // Теперь можно использовать db для работы с базой
+</script>
